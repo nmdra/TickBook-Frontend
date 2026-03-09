@@ -76,4 +76,3 @@ export const paymentsAPI = {
   updateStatus: (id, status) => paymentClient.put(`/api/payments/${id}/status`, { status }),
 };
 
-export default userClient;

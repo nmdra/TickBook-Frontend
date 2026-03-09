@@ -22,7 +22,7 @@ export default function EventCard({ event, onBook }) {
 
         {event.available_tickets != null && (
           <p className="text-xs text-gray-400 mb-3">
-            {event.available_tickets} / {event.total_tickets} tickets available
+            {event.available_tickets}{event.total_tickets != null ? ` / ${event.total_tickets}` : ''} tickets available
           </p>
         )}
 
