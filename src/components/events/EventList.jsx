@@ -22,7 +22,7 @@ function EventCardSkeleton() {
   );
 }
 
-export default function EventList({ onBook }) {
+export default function EventList({ onBook, searchQuery = '' }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,6 +60,16 @@ export default function EventList({ onBook }) {
     );
   }
 
+  const filteredEvents = events.filter((event) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      event.title?.toLowerCase().includes(query) ||
+      event.venue?.toLowerCase().includes(query) ||
+      event.description?.toLowerCase().includes(query)
+    );
+  });
+
   if (events.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
@@ -70,9 +80,19 @@ export default function EventList({ onBook }) {
     );
   }
 
+  if (filteredEvents.length === 0) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <CalendarOff className="size-12 mx-auto mb-4 opacity-40" />
+        <p className="text-lg font-medium">No matching events</p>
+        <p className="text-sm mt-1">Try a different search term.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {events.map((event) => (
+      {filteredEvents.map((event) => (
         <EventCard key={event.id} event={event} onBook={onBook} />
       ))}
     </div>

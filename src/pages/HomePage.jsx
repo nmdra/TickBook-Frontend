@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import EventList from '../components/events/EventList';
 import BookingModal from '../components/booking/BookingModal';
-import { Button } from '@/components/ui/button';
 import { Ticket, Sparkles, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -48,7 +47,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold">Upcoming Events</h2>
           </div>
         </div>
-        <EventList onBook={setSelectedEvent} />
+        <EventList onBook={setSelectedEvent} searchQuery={searchQuery} />
       </div>
 
       {/* Booking modal */}
