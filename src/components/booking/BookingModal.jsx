@@ -2,6 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { bookingsAPI } from '../../services/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { X, CalendarDays, MapPin, Ticket, Minus, Plus, AlertCircle } from 'lucide-react';
 
 export default function BookingModal({ event, onClose }) {
   const [tickets, setTickets] = useState(1);
@@ -42,72 +48,109 @@ export default function BookingModal({ event, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6"
+        className="bg-background rounded-xl shadow-2xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-900">Book Tickets</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">
-            &times;
-          </button>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 pb-0">
+          <h3 className="text-xl font-semibold">Book Tickets</h3>
+          <Button variant="ghost" size="icon" onClick={onClose} className="size-8 rounded-full">
+            <X className="size-4" />
+          </Button>
         </div>
 
-        <div className="border-b border-gray-200 pb-4 mb-4">
-          <p className="font-medium text-gray-800">{event.title}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {event.date ? new Date(event.date).toLocaleDateString() : 'TBA'} · {event.venue || 'Online'}
-          </p>
-          <p className="text-indigo-600 font-semibold mt-1">${price.toFixed(2)} per ticket</p>
-          {event.available_tickets != null && (
-            <p className="text-xs text-gray-400 mt-1">
-              {event.available_tickets}{event.total_tickets != null ? ` / ${event.total_tickets}` : ''} tickets available
-            </p>
+        <div className="p-6 space-y-5">
+          {/* Event Info */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+            <p className="font-semibold">{event.title}</p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" />
+                {event.date ? new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA'}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin className="size-3.5" />
+                {event.venue || 'Online'}
+              </span>
+            </div>
+            <p className="text-primary font-semibold">${price.toFixed(2)} per ticket</p>
+            {event.available_tickets != null && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Ticket className="size-3" />
+                {event.available_tickets}{event.total_tickets != null ? ` / ${event.total_tickets}` : ''} available
+              </p>
+            )}
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="size-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
+
+          {isSoldOut ? (
+            <Alert variant="destructive">
+              <AlertCircle className="size-4" />
+              <AlertDescription>This event is sold out.</AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              {/* Ticket selector */}
+              <div className="space-y-2">
+                <Label htmlFor="tickets">Number of tickets</Label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-9"
+                    onClick={() => setTickets(Math.max(1, tickets - 1))}
+                    disabled={tickets <= 1}
+                  >
+                    <Minus className="size-4" />
+                  </Button>
+                  <Input
+                    id="tickets"
+                    type="number"
+                    min="1"
+                    max={maxTickets}
+                    value={tickets}
+                    onChange={(e) => setTickets(Math.max(1, Math.min(maxTickets, Number(e.target.value))))}
+                    className="w-20 text-center"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-9"
+                    onClick={() => setTickets(Math.min(maxTickets, tickets + 1))}
+                    disabled={tickets >= maxTickets}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Total */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Total</span>
+                <span className="text-2xl font-bold">${totalPrice.toFixed(2)}</span>
+              </div>
+            </>
+          )}
+
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleBook}
+            disabled={loading || isSoldOut}
+          >
+            {loading ? 'Booking…' : isAuthenticated ? 'Proceed to Checkout' : 'Login to Book'}
+          </Button>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        {!isSoldOut && (
-          <div className="mb-6">
-            <label htmlFor="tickets" className="block text-sm font-medium text-gray-700 mb-1">
-              Number of tickets
-            </label>
-            <input
-              id="tickets"
-              type="number"
-              min="1"
-              max={maxTickets}
-              value={tickets}
-              onChange={(e) => setTickets(Math.max(1, Math.min(maxTickets, Number(e.target.value))))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-        )}
-
-        {isSoldOut ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm text-center">
-            This event is sold out.
-          </div>
-        ) : (
-          <div className="flex items-center justify-between mb-6">
-            <span className="text-gray-600">Total</span>
-            <span className="text-2xl font-bold text-gray-900">${totalPrice.toFixed(2)}</span>
-          </div>
-        )}
-
-        <button
-          onClick={handleBook}
-          disabled={loading || isSoldOut}
-          className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-        >
-          {loading ? 'Booking…' : isAuthenticated ? 'Proceed to Checkout' : 'Login to Book'}
-        </button>
       </div>
     </div>
   );

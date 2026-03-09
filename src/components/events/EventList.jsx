@@ -1,6 +1,26 @@
 import { useState, useEffect } from 'react';
 import { eventsAPI } from '../../services/api';
 import EventCard from './EventCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CalendarOff } from 'lucide-react';
+
+function EventCardSkeleton() {
+  return (
+    <div className="rounded-xl border bg-card overflow-hidden">
+      <Skeleton className="h-40 w-full rounded-none" />
+      <div className="p-5 space-y-3">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+        <div className="flex justify-between pt-2">
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-8 w-24 rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function EventList({ onBook }) {
   const [events, setEvents] = useState([]);
@@ -23,26 +43,29 @@ export default function EventList({ onBook }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <EventCardSkeleton key={i} />
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-10">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   if (events.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-10 text-center text-gray-500">
-        No events available at the moment.
+      <div className="text-center py-16 text-muted-foreground">
+        <CalendarOff className="size-12 mx-auto mb-4 opacity-40" />
+        <p className="text-lg font-medium">No events available</p>
+        <p className="text-sm mt-1">Check back later for upcoming events.</p>
       </div>
     );
   }

@@ -12,7 +12,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background text-foreground antialiased">
           <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />

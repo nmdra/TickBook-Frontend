@@ -2,12 +2,48 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { paymentsAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CreditCard, ShieldCheck, Ticket, Check } from 'lucide-react';
+
+const steps = ['Booking', 'Payment', 'Confirmation'];
+
+function ProgressSteps({ current }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {steps.map((step, i) => (
+        <div key={step} className="flex items-center gap-2">
+          <div className={`flex items-center justify-center size-8 rounded-full text-xs font-semibold transition-colors ${
+            i < current
+              ? 'bg-primary text-primary-foreground'
+              : i === current
+                ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
+                : 'bg-muted text-muted-foreground'
+          }`}>
+            {i < current ? <Check className="size-4" /> : i + 1}
+          </div>
+          <span className={`text-sm hidden sm:inline ${i === current ? 'font-medium' : 'text-muted-foreground'}`}>
+            {step}
+          </span>
+          {i < steps.length - 1 && (
+            <div className={`w-8 h-px ${i < current ? 'bg-primary' : 'bg-border'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function CheckoutFlow() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const booking = location.state?.booking;
+  const event = location.state?.event;
 
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -17,16 +53,14 @@ export default function CheckoutFlow() {
 
   if (!booking) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">No booking found. Please select an event first.</p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Browse Events
-          </button>
-        </div>
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8 pb-8 space-y-4">
+            <Ticket className="size-12 mx-auto text-muted-foreground opacity-40" />
+            <p className="text-muted-foreground">No booking found. Please select an event first.</p>
+            <Button onClick={() => navigate('/')}>Browse Events</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -55,85 +89,108 @@ export default function CheckoutFlow() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h2>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        <ProgressSteps current={1} />
 
-        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-600">Booking ID</p>
-          <p className="font-mono text-sm text-gray-800">{booking.id}</p>
-          <p className="text-sm text-gray-600 mt-2">Tickets</p>
-          <p className="text-sm text-gray-800">{booking.tickets}</p>
-          <p className="text-sm text-gray-600 mt-2">Total</p>
-          <p className="text-xl font-bold text-indigo-600">
-            ${amount.toFixed(2)}
-          </p>
+        <div className="grid gap-6">
+          {/* Order Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Ticket className="size-4 text-primary" />
+                Order Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {event && (
+                <p className="font-medium">{event.title}</p>
+              )}
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Booking ID</span>
+                <span className="font-mono">{booking.id}</span>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Tickets</span>
+                <span>{booking.tickets}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Total</span>
+                <span className="text-xl font-bold text-primary">${amount.toFixed(2)}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Form */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CreditCard className="size-4 text-primary" />
+                Payment Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="size-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <form onSubmit={handlePayment} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="card">Card number</Label>
+                  <Input
+                    id="card"
+                    type="text"
+                    required
+                    maxLength={19}
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    placeholder="4242 4242 4242 4242"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expiry">Expiry</Label>
+                    <Input
+                      id="expiry"
+                      type="text"
+                      required
+                      maxLength={5}
+                      value={expiry}
+                      onChange={(e) => setExpiry(e.target.value)}
+                      placeholder="MM/YY"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input
+                      id="cvv"
+                      type="text"
+                      required
+                      maxLength={4}
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value)}
+                      placeholder="123"
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  {loading ? 'Processing…' : `Pay $${amount.toFixed(2)}`}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
+                  <ShieldCheck className="size-3" />
+                  Secure payment processing
+                </p>
+              </form>
+            </CardContent>
+          </Card>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handlePayment} className="space-y-4">
-          <div>
-            <label htmlFor="card" className="block text-sm font-medium text-gray-700 mb-1">
-              Card number
-            </label>
-            <input
-              id="card"
-              type="text"
-              required
-              maxLength={19}
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="4242 4242 4242 4242"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="expiry" className="block text-sm font-medium text-gray-700 mb-1">
-                Expiry
-              </label>
-              <input
-                id="expiry"
-                type="text"
-                required
-                maxLength={5}
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="MM/YY"
-              />
-            </div>
-            <div>
-              <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
-                CVV
-              </label>
-              <input
-                id="cvv"
-                type="text"
-                required
-                maxLength={4}
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="123"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors mt-2"
-          >
-            {loading ? 'Processing…' : 'Pay Now'}
-          </button>
-        </form>
       </div>
     </div>
   );

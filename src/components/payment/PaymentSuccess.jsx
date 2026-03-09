@@ -1,4 +1,8 @@
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { CheckCircle2, Ticket, CalendarDays, ArrowRight } from 'lucide-react';
 
 export default function PaymentSuccess() {
   const location = useLocation();
@@ -7,16 +11,14 @@ export default function PaymentSuccess() {
 
   if (!booking) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">No payment information found.</p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Browse Events
-          </button>
-        </div>
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8 pb-8 space-y-4">
+            <Ticket className="size-12 mx-auto text-muted-foreground opacity-40" />
+            <p className="text-muted-foreground">No payment information found.</p>
+            <Button onClick={() => navigate('/')}>Browse Events</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -24,40 +26,59 @@ export default function PaymentSuccess() {
   const amount = parseFloat(booking.total_amount) || 0;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-        <p className="text-gray-500 mb-6">
-          Your tickets have been confirmed. A confirmation email will be sent shortly.
-        </p>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      <Card className="w-full max-w-md text-center">
+        <CardContent className="pt-8 pb-8 space-y-6">
+          {/* Success icon */}
+          <div className="mx-auto size-16 rounded-full bg-green-100 flex items-center justify-center">
+            <CheckCircle2 className="size-8 text-green-600" />
+          </div>
 
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-          <p className="text-sm text-gray-600">Booking ID</p>
-          <p className="font-mono text-sm text-gray-800 mb-2">{booking.id}</p>
-          <p className="text-sm text-gray-600">Tickets</p>
-          <p className="text-sm text-gray-800 mb-2">{booking.tickets}</p>
-          <p className="text-sm text-gray-600">Amount Paid</p>
-          <p className="text-lg font-bold text-indigo-600">
-            ${amount.toFixed(2)}
-          </p>
-        </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold">Payment Successful!</h2>
+            <p className="text-muted-foreground">
+              Your tickets have been confirmed. A confirmation email will be sent shortly.
+            </p>
+          </div>
 
-        <div className="flex gap-3">
-          <Link
-            to="/my-bookings"
-            className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-          >
-            My Bookings
-          </Link>
-          <Link
-            to="/"
-            className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-          >
-            Browse Events
-          </Link>
-        </div>
-      </div>
+          <Separator />
+
+          {/* Details */}
+          <div className="rounded-lg border bg-muted/30 p-4 text-left space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Booking ID</span>
+              <span className="font-mono">{booking.id}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <CalendarDays className="size-3" />
+                Tickets
+              </span>
+              <span>{booking.tickets}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Amount Paid</span>
+              <span className="text-lg font-bold text-primary">${amount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button className="flex-1" asChild>
+              <Link to="/my-bookings">
+                <Ticket className="size-4" />
+                My Bookings
+              </Link>
+            </Button>
+            <Button variant="outline" className="flex-1" asChild>
+              <Link to="/">
+                Browse Events
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
