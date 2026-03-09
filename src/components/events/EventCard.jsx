@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatEventDate } from '@/lib/utils';
 import { CalendarDays, MapPin, Ticket } from 'lucide-react';
 
 export default function EventCard({ event, onBook }) {
@@ -34,7 +35,7 @@ export default function EventCard({ event, onBook }) {
         <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <CalendarDays className="size-3.5" />
-            {event.date ? new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA'}
+            {formatEventDate(event.date)}
           </span>
           <span className="flex items-center gap-1.5">
             <MapPin className="size-3.5" />

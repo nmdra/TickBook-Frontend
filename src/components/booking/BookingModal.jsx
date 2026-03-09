@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { formatEventDate } from '@/lib/utils';
 import { X, CalendarDays, MapPin, Ticket, Minus, Plus, AlertCircle } from 'lucide-react';
 
 export default function BookingModal({ event, onClose }) {
@@ -68,7 +69,7 @@ export default function BookingModal({ event, onClose }) {
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-3.5" />
-                {event.date ? new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA'}
+                {formatEventDate(event.date)}
               </span>
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-3.5" />

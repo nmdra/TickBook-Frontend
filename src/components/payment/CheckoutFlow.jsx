@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 import { AlertCircle, CreditCard, ShieldCheck, Ticket, Check } from 'lucide-react';
 
 const steps = ['Booking', 'Payment', 'Confirmation'];
@@ -17,20 +18,19 @@ function ProgressSteps({ current }) {
     <div className="flex items-center justify-center gap-2 mb-8">
       {steps.map((step, i) => (
         <div key={step} className="flex items-center gap-2">
-          <div className={`flex items-center justify-center size-8 rounded-full text-xs font-semibold transition-colors ${
-            i < current
-              ? 'bg-primary text-primary-foreground'
-              : i === current
-                ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                : 'bg-muted text-muted-foreground'
-          }`}>
+          <div className={cn(
+            "flex items-center justify-center size-8 rounded-full text-xs font-semibold transition-colors",
+            i < current && "bg-primary text-primary-foreground",
+            i === current && "bg-primary text-primary-foreground ring-4 ring-primary/20",
+            i > current && "bg-muted text-muted-foreground",
+          )}>
             {i < current ? <Check className="size-4" /> : i + 1}
           </div>
-          <span className={`text-sm hidden sm:inline ${i === current ? 'font-medium' : 'text-muted-foreground'}`}>
+          <span className={cn("text-sm hidden sm:inline", i === current ? "font-medium" : "text-muted-foreground")}>
             {step}
           </span>
           {i < steps.length - 1 && (
-            <div className={`w-8 h-px ${i < current ? 'bg-primary' : 'bg-border'}`} />
+            <div className={cn("w-8 h-px", i < current ? "bg-primary" : "bg-border")} />
           )}
         </div>
       ))}
