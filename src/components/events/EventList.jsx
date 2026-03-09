@@ -11,9 +11,9 @@ export default function EventList({ onBook }) {
     const fetchEvents = async () => {
       try {
         const { data } = await eventsAPI.getAll();
-        setEvents(Array.isArray(data) ? data : data.events || []);
+        setEvents(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load events');
+        setError(err.response?.data?.error || err.response?.data?.message || 'Failed to load events');
       } finally {
         setLoading(false);
       }
@@ -50,7 +50,7 @@ export default function EventList({ onBook }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {events.map((event) => (
-        <EventCard key={event._id || event.id} event={event} onBook={onBook} />
+        <EventCard key={event.id} event={event} onBook={onBook} />
       ))}
     </div>
   );

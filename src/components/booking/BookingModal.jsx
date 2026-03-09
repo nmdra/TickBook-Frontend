@@ -4,15 +4,17 @@ import { useAuth } from '../../hooks/useAuth';
 import { bookingsAPI } from '../../services/api';
 
 export default function BookingModal({ event, onClose }) {
-  const [quantity, setQuantity] = useState(1);
+  const [tickets, setTickets] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   if (!event) return null;
 
-  const totalPrice = (event.price || 0) * quantity;
+  const price = parseFloat(event.price) || 0;
+  const totalPrice = price * tickets;
+  const maxTickets = Math.min(10, event.available_tickets ?? 10);
 
   const handleBook = async () => {
     if (!isAuthenticated) {
@@ -25,13 +27,14 @@ export default function BookingModal({ event, onClose }) {
 
     try {
       const { data } = await bookingsAPI.create({
-        eventId: event._id || event.id,
-        quantity,
+        user_id: user.id,
+        event_id: event.id,
+        tickets,
       });
       onClose();
-      navigate('/checkout', { state: { booking: data.booking || data } });
+      navigate('/checkout', { state: { booking: data, event } });
     } catch (err) {
-      setError(err.response?.data?.message || 'Booking failed');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Booking failed');
     } finally {
       setLoading(false);
     }
@@ -51,11 +54,16 @@ export default function BookingModal({ event, onClose }) {
         </div>
 
         <div className="border-b border-gray-200 pb-4 mb-4">
-          <p className="font-medium text-gray-800">{event.name || event.title}</p>
+          <p className="font-medium text-gray-800">{event.title}</p>
           <p className="text-sm text-gray-500 mt-1">
-            {event.date ? new Date(event.date).toLocaleDateString() : 'TBA'} · {event.venue || event.location || 'Online'}
+            {event.date ? new Date(event.date).toLocaleDateString() : 'TBA'} · {event.venue || 'Online'}
           </p>
-          <p className="text-indigo-600 font-semibold mt-1">${event.price ?? '0.00'} per ticket</p>
+          <p className="text-indigo-600 font-semibold mt-1">${price.toFixed(2)} per ticket</p>
+          {event.available_tickets != null && (
+            <p className="text-xs text-gray-400 mt-1">
+              {event.available_tickets} / {event.total_tickets} tickets available
+            </p>
+          )}
         </div>
 
         {error && (
@@ -65,16 +73,16 @@ export default function BookingModal({ event, onClose }) {
         )}
 
         <div className="mb-6">
-          <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="tickets" className="block text-sm font-medium text-gray-700 mb-1">
             Number of tickets
           </label>
           <input
-            id="quantity"
+            id="tickets"
             type="number"
             min="1"
-            max="10"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Math.min(10, Number(e.target.value))))}
+            max={maxTickets}
+            value={tickets}
+            onChange={(e) => setTickets(Math.max(1, Math.min(maxTickets, Number(e.target.value))))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>

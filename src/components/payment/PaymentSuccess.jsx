@@ -21,6 +21,8 @@ export default function PaymentSuccess() {
     );
   }
 
+  const amount = parseFloat(booking.total_amount) || 0;
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 text-center">
@@ -32,15 +34,13 @@ export default function PaymentSuccess() {
 
         <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
           <p className="text-sm text-gray-600">Booking ID</p>
-          <p className="font-mono text-sm text-gray-800 mb-2">{booking._id || booking.id}</p>
-          {booking.totalPrice != null && (
-            <>
-              <p className="text-sm text-gray-600">Amount Paid</p>
-              <p className="text-lg font-bold text-indigo-600">
-                ${(booking.totalPrice || booking.amount || 0).toFixed(2)}
-              </p>
-            </>
-          )}
+          <p className="font-mono text-sm text-gray-800 mb-2">{booking.id}</p>
+          <p className="text-sm text-gray-600">Tickets</p>
+          <p className="text-sm text-gray-800 mb-2">{booking.tickets}</p>
+          <p className="text-sm text-gray-600">Amount Paid</p>
+          <p className="text-lg font-bold text-indigo-600">
+            ${amount.toFixed(2)}
+          </p>
         </div>
 
         <div className="flex gap-3">

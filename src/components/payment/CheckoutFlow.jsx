@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { paymentsAPI } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function CheckoutFlow() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const booking = location.state?.booking;
 
   const [cardNumber, setCardNumber] = useState('');
@@ -29,6 +31,8 @@ export default function CheckoutFlow() {
     );
   }
 
+  const amount = parseFloat(booking.total_amount) || 0;
+
   const handlePayment = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -36,13 +40,15 @@ export default function CheckoutFlow() {
 
     try {
       await paymentsAPI.create({
-        bookingId: booking._id || booking.id,
-        amount: booking.totalPrice || booking.amount,
-        paymentMethod: 'card',
+        bookingId: booking.id,
+        userId: user?.id,
+        amount,
+        status: 'pending',
+        paymentMethod: 'credit_card',
       });
       navigate('/payment-success', { state: { booking } });
     } catch (err) {
-      setError(err.response?.data?.message || 'Payment failed');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Payment failed');
     } finally {
       setLoading(false);
     }
@@ -55,10 +61,12 @@ export default function CheckoutFlow() {
 
         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6">
           <p className="text-sm text-gray-600">Booking ID</p>
-          <p className="font-mono text-sm text-gray-800">{booking._id || booking.id}</p>
+          <p className="font-mono text-sm text-gray-800">{booking.id}</p>
+          <p className="text-sm text-gray-600 mt-2">Tickets</p>
+          <p className="text-sm text-gray-800">{booking.tickets}</p>
           <p className="text-sm text-gray-600 mt-2">Total</p>
           <p className="text-xl font-bold text-indigo-600">
-            ${(booking.totalPrice || booking.amount || 0).toFixed(2)}
+            ${amount.toFixed(2)}
           </p>
         </div>
 

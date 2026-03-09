@@ -15,14 +15,14 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const { data } = await authAPI.login(credentials);
-      const token = data.token || data.accessToken;
-      const userData = data.user || { email: credentials.email };
+      const token = data.token;
+      const userData = data.user;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       return { success: true };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Login failed' };
+      return { success: false, message: err.response?.data?.error || err.response?.data?.message || 'Login failed' };
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       await authAPI.register(userData);
       return { success: true };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Registration failed' };
+      return { success: false, message: err.response?.data?.error || err.response?.data?.message || 'Registration failed' };
     } finally {
       setLoading(false);
     }
