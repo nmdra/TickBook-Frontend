@@ -25,7 +25,7 @@ export default function AdminDashboardPage() {
   const { isAuthenticated, isAdmin } = useAuth();
   const [events, setEvents] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -69,13 +69,13 @@ export default function AdminDashboardPage() {
   const summary = useMemo(() => {
     const totalEvents = events.length;
     const totalBookings = bookings.length;
-    const totalTickets = bookings.reduce((acc, booking) => acc + (Number(booking.tickets) || 0), 0);
+    const totalTicketsSold = bookings.reduce((acc, booking) => acc + (Number(booking.tickets) || 0), 0);
     const totalRevenue = bookings.reduce((acc, booking) => acc + (parseFloat(booking.total_amount) || 0), 0);
     const uniqueUsers = new Set(
       bookings.map((booking) => booking.user_id).filter((userId) => userId !== null && userId !== undefined)
     ).size;
 
-    return { totalEvents, totalBookings, totalTickets, totalRevenue, uniqueUsers };
+    return { totalEvents, totalBookings, totalTicketsSold, totalRevenue, uniqueUsers };
   }, [bookings, events]);
 
   if (!isAuthenticated) {
