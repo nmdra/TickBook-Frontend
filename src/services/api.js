@@ -56,6 +56,10 @@ export const eventsAPI = {
   getAll: () => eventClient.get('/api/events'),
   getById: (id) => eventClient.get(`/api/events/${id}`),
   checkAvailability: (id) => eventClient.get(`/api/events/${id}/availability`),
+  create: (eventData) => eventClient.post('/api/events', eventData),
+  update: (id, eventData) => eventClient.put(`/api/events/${id}`, eventData),
+  delete: (id) => eventClient.delete(`/api/events/${id}`),
+  getMyEvents: (userId) => eventClient.get(`/api/events/user/${userId}`),
 };
 
 // ── Bookings API (Booking Service — port 3003) ──
