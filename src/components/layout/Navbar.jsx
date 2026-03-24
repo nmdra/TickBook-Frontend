@@ -1,11 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '@/components/ui/button';
-<<<<<<< HEAD
-import { Ticket, CalendarDays, LogOut, User, Menu, X, ListMusic } from 'lucide-react';
-=======
-import { Ticket, CalendarDays, LogOut, User, Menu, X, LayoutDashboard } from 'lucide-react';
->>>>>>> 2b6d5868d594ba059c055cbbec38bb413cc16678
+import { Ticket, CalendarDays, LogOut, User, Menu, X, ListMusic, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
