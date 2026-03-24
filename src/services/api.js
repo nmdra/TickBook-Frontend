@@ -1,10 +1,15 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const EVENT_SERVICE_URL = import.meta.env.VITE_EVENT_SERVICE_URL || API_BASE_URL;
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || API_BASE_URL;
-const BOOKING_SERVICE_URL = import.meta.env.VITE_BOOKING_SERVICE_URL || API_BASE_URL;
-const PAYMENT_SERVICE_URL = import.meta.env.VITE_PAYMENT_SERVICE_URL || API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+
+function resolveServiceURL(serviceEnvVar) {
+  return import.meta.env[serviceEnvVar] || API_BASE_URL;
+}
+
+const EVENT_SERVICE_URL = resolveServiceURL('VITE_EVENT_SERVICE_URL');
+const USER_SERVICE_URL = resolveServiceURL('VITE_USER_SERVICE_URL');
+const BOOKING_SERVICE_URL = resolveServiceURL('VITE_BOOKING_SERVICE_URL');
+const PAYMENT_SERVICE_URL = resolveServiceURL('VITE_PAYMENT_SERVICE_URL');
 
 function createClient(baseURL) {
   const client = axios.create({
