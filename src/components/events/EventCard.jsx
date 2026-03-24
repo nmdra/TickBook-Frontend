@@ -58,12 +58,12 @@ export default function EventCard({ event, onBook }) {
             ${price.toFixed(2)}
           </span>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => onBook(event, 'details')}>
+            <Button size="sm" variant="outline" onClick={() => onBook(event)}>
               Details
             </Button>
             <Button
               size="sm"
-              onClick={() => onBook(event, 'book')}
+              onClick={() => onBook(event)}
               disabled={isSoldOut}
             >
               {isSoldOut ? 'Sold Out' : 'Book Now'}

@@ -104,7 +104,10 @@ export default function EventList({ onBook, searchQuery = '', filters = {} }) {
         const bSold = (b.total_tickets || 0) - (b.available_tickets || 0);
         return bSold - aSold;
       }
-      return new Date(b.date || 0) - new Date(a.date || 0);
+      // Events without a valid date should appear last for "newest" sort.
+      const aTime = a.date ? new Date(a.date).getTime() : Number.NEGATIVE_INFINITY;
+      const bTime = b.date ? new Date(b.date).getTime() : Number.NEGATIVE_INFINITY;
+      return bTime - aTime;
     });
 
   if (events.length === 0) {

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatEventDate } from '@/lib/utils';
+import { getSeatMultiplier } from '@/lib/seatPricing';
 import { X, CalendarDays, MapPin, Ticket, AlertCircle } from 'lucide-react';
 import GuidedBookingSteps from './GuidedBookingSteps';
 import SeatMap from './SeatMap';
@@ -29,9 +30,7 @@ export default function BookingModal({ event, onClose }) {
     if (tickets <= 0) return 0;
     const multiplier = selectedSeats.reduce((acc, seatId) => {
       const row = seatId?.[0] || '';
-      if (row <= 'C') return acc + 1.7;
-      if (row <= 'F') return acc + 1.25;
-      return acc + 1;
+      return acc + getSeatMultiplier(row);
     }, 0);
     return price * multiplier;
   }, [price, selectedSeats, tickets]);
@@ -57,6 +56,19 @@ export default function BookingModal({ event, onClose }) {
     'Securely complete your payment to lock your seats.',
     'Show your digital ticket and QR at the venue entrance.',
   ];
+
+  const toLocalDateTimeInput = (value) => (value ? new Date(value).toISOString().slice(0, 16) : '');
+
+  const handleDateTimeChange = (value) => {
+    if (!value) {
+      setSelectedDateTime('');
+      return;
+    }
+    const nextValue = new Date(value);
+    if (!Number.isNaN(nextValue.getTime())) {
+      setSelectedDateTime(nextValue.toISOString());
+    }
+  };
 
   const handleBook = async () => {
     if (!isAuthenticated) {
@@ -153,18 +165,9 @@ export default function BookingModal({ event, onClose }) {
                   <Input
                     id="dateTime"
                     type="datetime-local"
-                    value={selectedDateTime ? new Date(selectedDateTime).toISOString().slice(0, 16) : ''}
-                    onChange={(e) => {
-                      if (!e.target.value) {
-                        setSelectedDateTime('');
-                        return;
-                      }
-                      const nextValue = new Date(e.target.value);
-                      if (!Number.isNaN(nextValue.getTime())) {
-                        setSelectedDateTime(nextValue.toISOString());
-                      }
-                    }}
-                    min={event.date ? new Date(event.date).toISOString().slice(0, 16) : undefined}
+                    value={toLocalDateTimeInput(selectedDateTime)}
+                    onChange={(e) => handleDateTimeChange(e.target.value)}
+                    min={toLocalDateTimeInput(event.date)}
                   />
                   {dateTimeOptions.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">

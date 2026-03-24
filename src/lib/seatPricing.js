@@ -5,8 +5,9 @@ export const SEAT_CATEGORY_MULTIPLIERS = {
 };
 
 export function getSeatCategory(rowLabel = '') {
-  if (rowLabel <= 'C') return 'VIP';
-  if (rowLabel <= 'F') return 'Premium';
+  const row = String(rowLabel).charAt(0).toUpperCase();
+  if (row <= 'C') return 'VIP';
+  if (row <= 'F') return 'Premium';
   return 'Standard';
 }
 

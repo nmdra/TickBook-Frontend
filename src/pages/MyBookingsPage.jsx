@@ -16,6 +16,28 @@ const statusVariant = {
   pending: 'secondary',
 };
 
+function getEventTitle(booking) {
+  return booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`;
+}
+
+function getBookingDateText(booking) {
+  return booking.ticketMeta?.dateTime
+    ? new Date(booking.ticketMeta.dateTime).toLocaleString()
+    : formatEventDate(booking.event?.date);
+}
+
+function getBookingSeatsText(booking, fallbackText) {
+  return booking.ticketMeta?.seats?.join(', ') || fallbackText;
+}
+
+function getTicketLabel(tickets) {
+  return `${tickets} ticket${tickets !== 1 ? 's' : ''}`;
+}
+
+function generateQRData(booking) {
+  return `TICKBOOK|BOOKING:${booking.id}|EVENT:${getEventTitle(booking)}|SEATS:${(booking.ticketMeta?.seats || ['GENERAL']).join('-')}`;
+}
+
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,12 +103,10 @@ export default function MyBookingsPage() {
   };
 
   const downloadTicket = (booking) => {
-    const title = booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`;
-    const dateText = booking.ticketMeta?.dateTime
-      ? new Date(booking.ticketMeta.dateTime).toLocaleString()
-      : formatEventDate(booking.event?.date);
-    const seats = booking.ticketMeta?.seats?.join(', ') || `General (${booking.tickets} ticket${booking.tickets !== 1 ? 's' : ''})`;
-    const qrData = `TICKBOOK|BOOKING:${booking.id}|EVENT:${title}|SEATS:${seats}`;
+    const title = getEventTitle(booking);
+    const dateText = getBookingDateText(booking);
+    const seats = getBookingSeatsText(booking, `General (${getTicketLabel(booking.tickets)})`);
+    const qrData = generateQRData(booking);
     const payload = [
       'TickBook Digital Ticket',
       `Booking #${booking.id}`,
@@ -107,11 +127,9 @@ export default function MyBookingsPage() {
   };
 
   const shareTicket = async (booking) => {
-    const title = booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`;
-    const dateText = booking.ticketMeta?.dateTime
-      ? new Date(booking.ticketMeta.dateTime).toLocaleString()
-      : formatEventDate(booking.event?.date);
-    const seats = booking.ticketMeta?.seats?.join(', ') || `${booking.tickets} ticket${booking.tickets !== 1 ? 's' : ''}`;
+    const title = getEventTitle(booking);
+    const dateText = getBookingDateText(booking);
+    const seats = getBookingSeatsText(booking, getTicketLabel(booking.tickets));
     const text = `I'm attending ${title} on ${dateText}. Seats: ${seats}. Booking #${booking.id}`;
     if (navigator.share) {
       try {
@@ -231,17 +249,17 @@ export default function MyBookingsPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`}
+                        {getEventTitle(booking)}
                       </span>
                       {' · '}
-                      {booking.ticketMeta?.dateTime ? new Date(booking.ticketMeta.dateTime).toLocaleString() : formatEventDate(booking.event?.date)}
+                      {getBookingDateText(booking)}
                       {' · '}
                       {booking.ticketMeta?.seats?.length ? `Seat ${booking.ticketMeta.seats.join(', ')}` : null}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <Ticket className="size-3" />
-                        {booking.tickets} ticket{booking.tickets !== 1 ? 's' : ''}
+                        {getTicketLabel(booking.tickets)}
                       </span>
                       {' · '}
                       <span className="font-medium text-foreground">
@@ -251,7 +269,7 @@ export default function MyBookingsPage() {
                     <div className="mt-2 rounded-md border bg-muted/20 p-2 text-xs">
                       <p className="font-medium">Digital Ticket (QR Data)</p>
                       <p className="text-muted-foreground break-all">
-                        TICKBOOK|BOOKING:{booking.id}|EVENT:{booking.event?.title || booking.ticketMeta?.eventTitle || booking.event_id}|SEATS:{booking.ticketMeta?.seats?.join('-') || 'GENERAL'}
+                        {generateQRData(booking)}
                       </p>
                     </div>
                   </div>

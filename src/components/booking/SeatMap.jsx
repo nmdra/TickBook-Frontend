@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { eventsAPI } from '@/services/api';
+import { getSeatCategory, getSeatMultiplier } from '@/lib/seatPricing';
 import { AlertCircle } from 'lucide-react';
 
 const ROWS = 'ABCDEFGH'.split('');
@@ -25,8 +26,8 @@ function buildSeatLayout(event, availableCount) {
       const index = seats.length;
       if (index >= totalSeats) break;
 
-      const category = row <= 'C' ? 'VIP' : row <= 'F' ? 'Premium' : 'Standard';
-      const multiplier = category === 'VIP' ? 1.7 : category === 'Premium' ? 1.25 : 1;
+      const category = getSeatCategory(row);
+      const multiplier = getSeatMultiplier(row);
       const seatPrice = (parseFloat(event?.price) || 0) * multiplier;
 
       let status = 'available';
@@ -56,14 +57,20 @@ export default function SeatMap({
 
   useEffect(() => {
     if (!event?.id) return undefined;
+    let attempts = 0;
     const interval = setInterval(async () => {
       try {
         const { data } = await eventsAPI.checkAvailability(event.id);
         if (typeof data?.available_tickets === 'number') {
           setAvailableCount(data.available_tickets);
         }
+        attempts = 0;
       } catch {
         setRefreshError('Live seat updates are temporarily unavailable.');
+        attempts += 1;
+        if (attempts >= 3) {
+          clearInterval(interval);
+        }
       }
     }, 10000);
 

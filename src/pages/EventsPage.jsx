@@ -27,8 +27,7 @@ export default function EventsPage() {
     [filters],
   );
 
-  const handleEventAction = (event, action = 'book') => {
-    if (action === 'details') return;
+  const handleEventAction = (event) => {
     setSelectedEvent(event);
   };
 
