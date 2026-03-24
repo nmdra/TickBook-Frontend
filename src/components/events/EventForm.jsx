@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,21 +17,17 @@ const initialFormState = {
 };
 
 export default function EventForm({ event, onSubmit, isLoading, error, mode = 'create' }) {
-  const [formData, setFormData] = useState(initialFormState);
+  const [formData, setFormData] = useState(() =>
+    event && mode === 'edit' ? {
+      title: event.title || '',
+      description: event.description || '',
+      date: event.date ? event.date.slice(0, 16) : '',
+      venue: event.venue || '',
+      price: event.price?.toString() || '',
+      total_tickets: event.total_tickets?.toString() || '',
+    } : initialFormState
+  );
   const [validationErrors, setValidationErrors] = useState({});
-
-  useEffect(() => {
-    if (event && mode === 'edit') {
-      setFormData({
-        title: event.title || '',
-        description: event.description || '',
-        date: event.date ? event.date.slice(0, 16) : '',
-        venue: event.venue || '',
-        price: event.price?.toString() || '',
-        total_tickets: event.total_tickets?.toString() || '',
-      });
-    }
-  }, [event, mode]);
 
   const validateForm = () => {
     const errors = {};
