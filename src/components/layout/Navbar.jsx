@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Ticket, CalendarDays, LogOut, User, Menu, X } from 'lucide-react';
+import { Ticket, CalendarDays, LogOut, User, Menu, X, ListMusic, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -27,19 +27,33 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/">
-                <CalendarDays className="size-4" />
-                Events
-              </Link>
-            </Button>
+              <Button variant="ghost" size="sm" asChild>
+               <Link to="/events">
+                 <CalendarDays className="size-4" />
+                 All Events
+               </Link>
+             </Button>
 
-            {isAuthenticated ? (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/my-bookings">
-                    <Ticket className="size-4" />
+              {isAuthenticated ? (
+                <>
+                  {isAdmin && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/admin">
+                        <LayoutDashboard className="size-4" />
+                        Admin Dashboard
+                      </Link>
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/my-bookings">
+                      <Ticket className="size-4" />
                     My Bookings
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/my-events">
+                    <ListMusic className="size-4" />
+                    My Events
                   </Link>
                 </Button>
                 <div className="h-5 w-px bg-border mx-2" />
@@ -79,18 +93,32 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="md:hidden border-t pb-4 pt-2 space-y-1">
             <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-              <Link to="/" onClick={() => setMobileOpen(false)}>
+              <Link to="/events" onClick={() => setMobileOpen(false)}>
                 <CalendarDays className="size-4" />
-                Events
+                All Events
               </Link>
             </Button>
 
             {isAuthenticated ? (
               <>
+                {isAdmin && (
+                  <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
+                    <Link to="/admin" onClick={() => setMobileOpen(false)}>
+                      <LayoutDashboard className="size-4" />
+                      Admin Dashboard
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
                   <Link to="/my-bookings" onClick={() => setMobileOpen(false)}>
                     <Ticket className="size-4" />
                     My Bookings
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
+                  <Link to="/my-events" onClick={() => setMobileOpen(false)}>
+                    <ListMusic className="size-4" />
+                    My Events
                   </Link>
                 </Button>
                 <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-1.5">

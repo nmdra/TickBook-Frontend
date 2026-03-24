@@ -1,12 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import EventList from '../components/events/EventList';
 import BookingModal from '../components/booking/BookingModal';
 import { Ticket, Sparkles, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import GuidedBookingSteps from '@/components/booking/GuidedBookingSteps';
 
 export default function HomePage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleEventAction = (event) => {
+    setSelectedEvent(event);
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
@@ -41,13 +49,43 @@ export default function HomePage() {
 
       {/* Event grid */}
       <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="mb-6">
+          <GuidedBookingSteps
+            currentStep={0}
+            tip="Select an event to begin. Use filters and details to quickly find the right experience."
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 mb-8">
+          <div className="rounded-xl border bg-card p-5">
+            <p className="text-sm text-muted-foreground">Latest Events</p>
+            <h3 className="text-lg font-semibold mt-1">Fresh this week</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Browse newly added events with quick-book from the cards below.
+            </p>
+            <Button size="sm" className="mt-3" onClick={() => navigate('/events')}>
+              Explore Latest
+            </Button>
+          </div>
+          <div className="rounded-xl border bg-primary/5 p-5">
+            <p className="text-sm text-muted-foreground">Featured & Promotions</p>
+            <h3 className="text-lg font-semibold mt-1">Save up to 20% on select shows</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Look for trending and popular tags on the All Events page for special picks.
+            </p>
+            <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate('/events')}>
+              View Featured
+            </Button>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Ticket className="size-5 text-primary" />
             <h2 className="text-2xl font-bold">Upcoming Events</h2>
           </div>
         </div>
-        <EventList onBook={setSelectedEvent} searchQuery={searchQuery} />
+        <EventList onBook={handleEventAction} searchQuery={searchQuery} />
       </div>
 
       {/* Booking modal */}

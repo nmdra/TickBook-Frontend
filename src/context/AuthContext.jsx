@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'admin' || user?.isAdmin === true;
 
   const login = useCallback(async (credentials) => {
     setLoading(true);
@@ -62,7 +63,7 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

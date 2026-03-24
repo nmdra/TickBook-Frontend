@@ -22,7 +22,7 @@ function EventCardSkeleton() {
   );
 }
 
-export default function EventList({ onBook, searchQuery = '' }) {
+export default function EventList({ onBook, searchQuery = '', filters = {} }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,15 +60,55 @@ export default function EventList({ onBook, searchQuery = '' }) {
     );
   }
 
-  const filteredEvents = events.filter((event) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      event.title?.toLowerCase().includes(query) ||
-      event.venue?.toLowerCase().includes(query) ||
-      event.description?.toLowerCase().includes(query)
-    );
-  });
+  const filteredEvents = events
+    .filter((event) => {
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = (
+          event.title?.toLowerCase().includes(query) ||
+          event.venue?.toLowerCase().includes(query) ||
+          event.description?.toLowerCase().includes(query)
+        );
+        if (!matchesSearch) return false;
+      }
+
+      if (filters.category && filters.category !== 'all') {
+        const category = (event.category || '').toLowerCase();
+        if (!category.includes(String(filters.category).toLowerCase())) return false;
+      }
+
+      if (filters.location) {
+        const venue = (event.venue || '').toLowerCase();
+        if (!venue.includes(String(filters.location).toLowerCase())) return false;
+      }
+
+      if (filters.date) {
+        const eventDate = event.date ? new Date(event.date).toISOString().slice(0, 10) : '';
+        if (eventDate !== filters.date) return false;
+      }
+
+      if (filters.maxPrice) {
+        const maxPrice = Number(filters.maxPrice);
+        if (!Number.isNaN(maxPrice) && (parseFloat(event.price) || 0) > maxPrice) return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      const sort = filters.sort || 'newest';
+      if (sort === 'popular') {
+        return (b.total_tickets || 0) - (a.total_tickets || 0);
+      }
+      if (sort === 'trending') {
+        const aSold = (a.total_tickets || 0) - (a.available_tickets || 0);
+        const bSold = (b.total_tickets || 0) - (b.available_tickets || 0);
+        return bSold - aSold;
+      }
+      // Events without a valid date should appear last for "newest" sort.
+      const aTime = a.date ? new Date(a.date).getTime() : Number.NEGATIVE_INFINITY;
+      const bTime = b.date ? new Date(b.date).getTime() : Number.NEGATIVE_INFINITY;
+      return bTime - aTime;
+    });
 
   if (events.length === 0) {
     return (

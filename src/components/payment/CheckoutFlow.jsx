@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { AlertCircle, CreditCard, ShieldCheck, Ticket, Check } from 'lucide-react';
+import GuidedBookingSteps from '@/components/booking/GuidedBookingSteps';
 
 const steps = ['Booking', 'Payment', 'Confirmation'];
 
@@ -44,6 +45,8 @@ export default function CheckoutFlow() {
   const { user } = useAuth();
   const booking = location.state?.booking;
   const event = location.state?.event;
+  const selectedDateTime = location.state?.selectedDateTime;
+  const selectedSeats = location.state?.selectedSeats || [];
 
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -80,7 +83,7 @@ export default function CheckoutFlow() {
         status: 'pending',
         paymentMethod: 'credit_card',
       });
-      navigate('/payment-success', { state: { booking } });
+      navigate('/payment-success', { state: { booking, event, selectedDateTime, selectedSeats } });
     } catch (err) {
       setError(err.response?.data?.error || err.response?.data?.message || 'Payment failed');
     } finally {
@@ -92,6 +95,12 @@ export default function CheckoutFlow() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
         <ProgressSteps current={1} />
+        <div className="mb-6">
+          <GuidedBookingSteps
+            currentStep={4}
+            tip="Verify your seat and booking details before paying."
+          />
+        </div>
 
         <div className="grid gap-6">
           {/* Order Summary */}
@@ -105,6 +114,18 @@ export default function CheckoutFlow() {
             <CardContent className="space-y-3">
               {event && (
                 <p className="font-medium">{event.title}</p>
+              )}
+              {selectedDateTime && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Date & Time</span>
+                  <span>{new Date(selectedDateTime).toLocaleString()}</span>
+                </div>
+              )}
+              {selectedSeats.length > 0 && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Seats</span>
+                  <span>{selectedSeats.join(', ')}</span>
+                </div>
               )}
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Booking ID</span>

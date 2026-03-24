@@ -31,6 +31,9 @@ export default function EventCard({ event, onBook }) {
         <p className="text-sm text-muted-foreground line-clamp-2">
           {event.description || 'No description available.'}
         </p>
+        <p className="text-xs text-muted-foreground">
+          {event.category || 'General'}
+        </p>
 
         <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -54,13 +57,18 @@ export default function EventCard({ event, onBook }) {
           <span className="text-xl font-bold text-primary">
             ${price.toFixed(2)}
           </span>
-          <Button
-            size="sm"
-            onClick={() => onBook(event)}
-            disabled={isSoldOut}
-          >
-            {isSoldOut ? 'Sold Out' : 'Book Now'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => onBook(event)}>
+              Details
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => onBook(event)}
+              disabled={isSoldOut}
+            >
+              {isSoldOut ? 'Sold Out' : 'Book Now'}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
