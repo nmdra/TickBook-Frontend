@@ -27,12 +27,12 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/">
-                <CalendarDays className="size-4" />
-                Events
-              </Link>
-            </Button>
+              <Button variant="ghost" size="sm" asChild>
+               <Link to="/events">
+                 <CalendarDays className="size-4" />
+                 All Events
+               </Link>
+             </Button>
 
               {isAuthenticated ? (
                 <>
@@ -87,9 +87,9 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="md:hidden border-t pb-4 pt-2 space-y-1">
             <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-              <Link to="/" onClick={() => setMobileOpen(false)}>
+              <Link to="/events" onClick={() => setMobileOpen(false)}>
                 <CalendarDays className="size-4" />
-                Events
+                All Events
               </Link>
             </Button>
 

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { bookingsAPI } from '../services/api';
+import { bookingsAPI, eventsAPI } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Ticket, CalendarDays, X } from 'lucide-react';
+import { AlertCircle, Ticket, CalendarDays, Download, Share2, X } from 'lucide-react';
+import { formatEventDate } from '@/lib/utils';
 
 const statusVariant = {
   confirmed: 'default',
@@ -19,6 +20,13 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('notification_prefs') || '{"reminders":true,"seatAlerts":false,"priceDrops":false}');
+    } catch {
+      return { reminders: true, seatAlerts: false, priceDrops: false };
+    }
+  });
   const { user } = useAuth();
 
   useEffect(() => {
@@ -30,7 +38,28 @@ export default function MyBookingsPage() {
       }
       try {
         const { data } = await bookingsAPI.getByUser(user.id);
-        setBookings(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+
+        const eventIds = [...new Set(list.map((booking) => booking.event_id).filter(Boolean))];
+        const eventsById = {};
+        await Promise.all(
+          eventIds.map(async (eventId) => {
+            try {
+              const response = await eventsAPI.getById(eventId);
+              eventsById[eventId] = response.data;
+            } catch {
+              eventsById[eventId] = null;
+            }
+          }),
+        );
+
+        const ticketMeta = JSON.parse(localStorage.getItem('ticket_meta') || '{}');
+        const enriched = list.map((booking) => ({
+          ...booking,
+          event: eventsById[booking.event_id] || null,
+          ticketMeta: ticketMeta[booking.id] || null,
+        }));
+        setBookings(enriched);
       } catch (err) {
         setError(err.response?.data?.error || err.response?.data?.message || 'Failed to load bookings');
       } finally {
@@ -49,6 +78,62 @@ export default function MyBookingsPage() {
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to cancel booking');
     }
+  };
+
+  const downloadTicket = (booking) => {
+    const title = booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`;
+    const dateText = booking.ticketMeta?.dateTime
+      ? new Date(booking.ticketMeta.dateTime).toLocaleString()
+      : formatEventDate(booking.event?.date);
+    const seats = booking.ticketMeta?.seats?.join(', ') || `General (${booking.tickets} ticket${booking.tickets !== 1 ? 's' : ''})`;
+    const qrData = `TICKBOOK|BOOKING:${booking.id}|EVENT:${title}|SEATS:${seats}`;
+    const payload = [
+      'TickBook Digital Ticket',
+      `Booking #${booking.id}`,
+      `Event: ${title}`,
+      `Date/Time: ${dateText}`,
+      `Seats: ${seats}`,
+      `QR: ${qrData}`,
+    ].join('\n');
+    const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ticket-${booking.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const shareTicket = async (booking) => {
+    const title = booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`;
+    const dateText = booking.ticketMeta?.dateTime
+      ? new Date(booking.ticketMeta.dateTime).toLocaleString()
+      : formatEventDate(booking.event?.date);
+    const seats = booking.ticketMeta?.seats?.join(', ') || `${booking.tickets} ticket${booking.tickets !== 1 ? 's' : ''}`;
+    const text = `I'm attending ${title} on ${dateText}. Seats: ${seats}. Booking #${booking.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My TickBook Ticket', text });
+      } catch {
+        // user canceled share
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      setError('Unable to copy share text automatically on this device.');
+    }
+  };
+
+  const toggleNotification = (key) => {
+    setNotifications((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('notification_prefs', JSON.stringify(next));
+      return next;
+    });
   };
 
   if (loading) {
@@ -86,6 +171,36 @@ export default function MyBookingsPage() {
         </Alert>
       )}
 
+      <Card className="mb-6">
+        <CardContent className="p-5 space-y-3">
+          <h3 className="font-semibold">Notifications</h3>
+          <p className="text-sm text-muted-foreground">Set reminders and alerts for your upcoming events.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant={notifications.reminders ? 'default' : 'outline'}
+              onClick={() => toggleNotification('reminders')}
+            >
+              Event Reminder
+            </Button>
+            <Button
+              size="sm"
+              variant={notifications.seatAlerts ? 'default' : 'outline'}
+              onClick={() => toggleNotification('seatAlerts')}
+            >
+              Seat Availability Alerts
+            </Button>
+            <Button
+              size="sm"
+              variant={notifications.priceDrops ? 'default' : 'outline'}
+              onClick={() => toggleNotification('priceDrops')}
+            >
+              Price Drop Alerts
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {bookings.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center space-y-4">
@@ -115,6 +230,15 @@ export default function MyBookingsPage() {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {booking.event?.title || booking.ticketMeta?.eventTitle || `Event #${booking.event_id}`}
+                      </span>
+                      {' · '}
+                      {booking.ticketMeta?.dateTime ? new Date(booking.ticketMeta.dateTime).toLocaleString() : formatEventDate(booking.event?.date)}
+                      {' · '}
+                      {booking.ticketMeta?.seats?.length ? `Seat ${booking.ticketMeta.seats.join(', ')}` : null}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <Ticket className="size-3" />
                         {booking.tickets} ticket{booking.tickets !== 1 ? 's' : ''}
@@ -123,21 +247,35 @@ export default function MyBookingsPage() {
                       <span className="font-medium text-foreground">
                         ${(parseFloat(booking.total_amount) || 0).toFixed(2)}
                       </span>
-                      {' · '}
-                      Event #{booking.event_id}
                     </p>
+                    <div className="mt-2 rounded-md border bg-muted/20 p-2 text-xs">
+                      <p className="font-medium">Digital Ticket (QR Data)</p>
+                      <p className="text-muted-foreground break-all">
+                        TICKBOOK|BOOKING:{booking.id}|EVENT:{booking.event?.title || booking.ticketMeta?.eventTitle || booking.event_id}|SEATS:{booking.ticketMeta?.seats?.join('-') || 'GENERAL'}
+                      </p>
+                    </div>
                   </div>
-                  {booking.status === 'pending' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCancel(booking.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                    >
-                      <X className="size-4" />
-                      Cancel
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" onClick={() => downloadTicket(booking)}>
+                      <Download className="size-4" />
+                      Download
                     </Button>
-                  )}
+                    <Button variant="outline" size="sm" onClick={() => shareTicket(booking)}>
+                      <Share2 className="size-4" />
+                      Share
+                    </Button>
+                    {booking.status === 'pending' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCancel(booking.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <X className="size-4" />
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
