@@ -1,7 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '@/components/ui/button';
+<<<<<<< HEAD
+import { Ticket, CalendarDays, LogOut, User, Menu, X, ListMusic } from 'lucide-react';
+=======
 import { Ticket, CalendarDays, LogOut, User, Menu, X, LayoutDashboard } from 'lucide-react';
+>>>>>>> 2b6d5868d594ba059c055cbbec38bb413cc16678
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -48,6 +52,12 @@ export default function Navbar() {
                     <Link to="/my-bookings">
                       <Ticket className="size-4" />
                     My Bookings
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/my-events">
+                    <ListMusic className="size-4" />
+                    My Events
                   </Link>
                 </Button>
                 <div className="h-5 w-px bg-border mx-2" />
@@ -107,6 +117,12 @@ export default function Navbar() {
                   <Link to="/my-bookings" onClick={() => setMobileOpen(false)}>
                     <Ticket className="size-4" />
                     My Bookings
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
+                  <Link to="/my-events" onClick={() => setMobileOpen(false)}>
+                    <ListMusic className="size-4" />
+                    My Events
                   </Link>
                 </Button>
                 <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-1.5">

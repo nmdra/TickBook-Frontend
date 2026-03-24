@@ -225,7 +225,7 @@ export default function MyBookingsPage() {
             <Ticket className="size-12 mx-auto text-muted-foreground opacity-40" />
             <p className="text-lg font-medium">No bookings yet</p>
             <p className="text-muted-foreground text-sm">
-              You haven&apos;t booked any events yet. Start exploring!
+              You haven't booked any events yet. Start exploring!
             </p>
             <Button asChild>
               <Link to="/">Browse Events</Link>

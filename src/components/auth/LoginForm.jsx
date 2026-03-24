@@ -33,7 +33,7 @@ export default function LoginForm() {
           <div className="mx-auto size-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
             <Ticket className="size-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-2xl">Hi, Welcome back</CardTitle>
           <CardDescription>Sign in to your TickBook account</CardDescription>
         </CardHeader>
 

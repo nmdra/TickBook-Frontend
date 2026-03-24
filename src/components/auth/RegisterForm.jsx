@@ -45,7 +45,7 @@ export default function RegisterForm() {
             <UserPlus className="size-6 text-primary" />
           </div>
           <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Get started with your TickBook account</CardDescription>
+          <CardDescription>Get started with your TickBook account.</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -76,7 +76,7 @@ export default function RegisterForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="register-email">Email address</Label>
+              <Label htmlFor="register-email">E-mail address</Label>
               <Input
                 id="register-email"
                 type="email"
