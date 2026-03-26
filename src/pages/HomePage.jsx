@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EventList from '../components/events/EventList';
 import BookingModal from '../components/booking/BookingModal';
-import { Ticket, Sparkles, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Ticket, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GuidedBookingSteps from '@/components/booking/GuidedBookingSteps';
 
 export default function HomePage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   const handleEventAction = (event) => {
@@ -32,14 +30,13 @@ export default function HomePage() {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
             Find the best events, book your tickets instantly, and create unforgettable memories.
           </p>
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Search events…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11"
-            />
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button size="lg" onClick={() => navigate('/events')}>
+              Book Tickets Now
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate('/events')}>
+              Browse All Events
+            </Button>
           </div>
         </div>
         {/* Decorative gradient blobs */}
@@ -85,7 +82,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold">Upcoming Events</h2>
           </div>
         </div>
-        <EventList onBook={handleEventAction} searchQuery={searchQuery} />
+        <EventList onBook={handleEventAction} />
       </div>
 
       {/* Booking modal */}

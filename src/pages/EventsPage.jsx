@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
 import EventList from '../components/events/EventList';
 import BookingModal from '../components/booking/BookingModal';
-import { Ticket, Search, SlidersHorizontal } from 'lucide-react';
+import { Ticket, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: 'all',
     date: '',
@@ -40,17 +39,7 @@ export default function EventsPage() {
             <h1 className="text-2xl sm:text-3xl font-bold">All Events</h1>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-5">
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                aria-label="Search events"
-                placeholder="Search title, venue or description"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          <div className="grid gap-3 md:grid-cols-4">
             <Input
               aria-label="Filter by location"
               placeholder="Location"
@@ -111,7 +100,7 @@ export default function EventsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-10">
-        <EventList onBook={handleEventAction} searchQuery={searchQuery} filters={filterProps} />
+        <EventList onBook={handleEventAction} filters={filterProps} />
       </div>
 
       {selectedEvent && (
