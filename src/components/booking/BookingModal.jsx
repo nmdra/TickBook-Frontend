@@ -13,6 +13,18 @@ import { X, CalendarDays, MapPin, Ticket, AlertCircle } from 'lucide-react';
 import GuidedBookingSteps from './GuidedBookingSteps';
 import SeatMap from './SeatMap';
 
+function createBookingSessionToken() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  if (window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return `session_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+  }
+  return `session_${Date.now().toString(36)}`;
+}
+
 export default function BookingModal({ event, onClose }) {
   const [step, setStep] = useState(0);
   const [selectedDateTime, setSelectedDateTime] = useState(event?.date || '');
@@ -79,14 +91,26 @@ export default function BookingModal({ event, onClose }) {
       setError('Please select at least one seat.');
       return;
     }
+    if (!selectedSeats[0]) {
+      setError('Please select a valid seat.');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
+      let sessionToken = localStorage.getItem('booking_session_token');
+      if (!sessionToken) {
+        sessionToken = createBookingSessionToken();
+        localStorage.setItem('booking_session_token', sessionToken);
+      }
+
       const { data } = await bookingsAPI.create({
         user_id: user.id,
         event_id: event.id,
+        seat_id: selectedSeats[0],
+        session_token: sessionToken,
         tickets,
       });
 
