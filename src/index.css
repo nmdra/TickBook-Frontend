@@ -53,6 +53,72 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-width: 320px;
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 1) 34rem),
+      var(--color-background);
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--color-primary) 18%, transparent);
+  }
+}
+
+@layer components {
+  .page-shell {
+    width: min(80rem, calc(100% - 2rem));
+    margin-inline: auto;
+  }
+
+  .surface-panel {
+    border: 1px solid color-mix(in oklch, var(--color-border) 78%, transparent);
+    background: color-mix(in oklch, var(--color-background) 92%, white);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.07);
+  }
+
+  .subtle-grid {
+    background-image:
+      linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .hero-image {
+    background-image:
+      linear-gradient(90deg, rgba(5, 10, 18, 0.9) 0%, rgba(5, 10, 18, 0.72) 38%, rgba(5, 10, 18, 0.2) 72%),
+      url('/assets/event-hero.png');
+    background-position: center;
+    background-size: cover;
+  }
+
+  .fade-up {
+    animation: fade-up 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .fade-up-delay {
+    animation: fade-up 680ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
