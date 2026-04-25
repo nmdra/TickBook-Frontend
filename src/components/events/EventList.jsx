@@ -22,7 +22,7 @@ function EventCardSkeleton() {
   );
 }
 
-export default function EventList({ onBook, searchQuery = '', filters = {} }) {
+export default function EventList({ onBook, searchQuery = '', filters = {}, limit }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -110,6 +110,8 @@ export default function EventList({ onBook, searchQuery = '', filters = {} }) {
       return bTime - aTime;
     });
 
+  const visibleEvents = limit ? filteredEvents.slice(0, limit) : filteredEvents;
+
   if (events.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
@@ -132,7 +134,7 @@ export default function EventList({ onBook, searchQuery = '', filters = {} }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredEvents.map((event) => (
+      {visibleEvents.map((event) => (
         <EventCard key={event.id} event={event} onBook={onBook} />
       ))}
     </div>

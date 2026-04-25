@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { authAPI } from '../../services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Ticket } from 'lucide-react';
+import { AlertCircle, Chrome, Ticket } from 'lucide-react';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { login, completeTokenLogin, loading } = useAuth();
   const navigate = useNavigate();
+  const googleAuthOrigin = useMemo(() => new URL(authAPI.googleAuthUrl).origin, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,20 +28,81 @@ export default function LoginForm() {
     }
   };
 
-  return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto size-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-            <Ticket className="size-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Hi, Welcome back</CardTitle>
-          <CardDescription>Sign in to your TickBook account</CardDescription>
-        </CardHeader>
+  useEffect(() => {
+    const handleGoogleAuthMessage = async (event) => {
+      if (event.origin !== googleAuthOrigin || event.data?.type !== 'tickbook:google-auth') {
+        return;
+      }
 
-        <CardContent>
+      setGoogleLoading(false);
+
+      if (event.data.status === 'error') {
+        setError(event.data.error || 'Google login failed');
+        return;
+      }
+
+      const result = await completeTokenLogin({
+        token: event.data.accessToken,
+        refreshToken: event.data.refreshToken,
+      });
+
+      if (result.success) {
+        navigate('/');
+        return;
+      }
+
+      setError(result.message);
+    };
+
+    window.addEventListener('message', handleGoogleAuthMessage);
+    return () => window.removeEventListener('message', handleGoogleAuthMessage);
+  }, [completeTokenLogin, googleAuthOrigin, navigate]);
+
+  const handleGoogleLogin = () => {
+    setError('');
+    setGoogleLoading(true);
+
+    const popup = window.open(
+      authAPI.googleAuthUrl,
+      'tickbook-google-auth',
+      'width=520,height=720,menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes',
+    );
+
+    if (!popup) {
+      window.location.href = authAPI.googleAuthUrl;
+      return;
+    }
+
+    popup.focus();
+  };
+
+  return (
+    <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="hero-image hidden items-end p-10 text-white lg:flex">
+        <div className="max-w-xl">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm text-white/75 backdrop-blur">
+            <Ticket className="size-4 text-amber-300" />
+            TickBook Access
+          </div>
+          <h1 className="text-5xl font-bold leading-tight tracking-tight">Your tickets, seats, and events in one place.</h1>
+          <p className="mt-4 text-white/72">
+            Sign in to manage bookings, create events, and keep your digital tickets ready.
+          </p>
+        </div>
+      </section>
+
+      <section className="flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="mb-8">
+            <div className="mb-4 grid size-12 place-items-center rounded-full bg-primary text-primary-foreground">
+              <Ticket className="size-5" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+            <p className="mt-2 text-muted-foreground">Sign in to continue to TickBook.</p>
+          </div>
+
           {error && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive" className="mb-5">
               <AlertCircle className="size-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -66,23 +129,41 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Password"
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign In'}
+            <Button type="submit" className="w-full rounded-full" size="lg" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium uppercase text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-full"
+            size="lg"
+            onClick={handleGoogleLogin}
+            disabled={googleLoading}
+          >
+            <Chrome className="size-4" />
+            {googleLoading ? 'Waiting for Google...' : 'Continue with Google'}
+          </Button>
+
+          <p className="mt-7 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-primary font-medium hover:underline">
+            <Link to="/register" className="font-medium text-primary hover:underline">
               Register
             </Link>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
